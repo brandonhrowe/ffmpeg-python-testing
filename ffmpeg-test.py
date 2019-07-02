@@ -46,7 +46,7 @@ shot_num = len(final_output)
 random_idx = random.randint(0, shot_num)
 
 ff2 = ffmpy.FFmpeg(
-  inputs={"https://archive.org/download/Detour_movie/Detour.mp4": f'-ss {final_output[random_idx]} -to {round(float(final_output[random_idx + 1]) - (1 / 29.97), 2)}'},
+  inputs={"https://archive.org/download/Detour_movie/Detour.mp4": f'-ss {final_output[random_idx]} -to {round(float(final_output[random_idx + random.randint(1, 3)]) - (2 / 29.97), 2)}'},
   outputs={"test.mp4":None}
 )
 ff2.cmd
