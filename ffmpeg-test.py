@@ -29,25 +29,52 @@ import subprocess
 # probe = ffmpeg.probe('https://archive.org/download/Detour_movie/Detour.mp4')
 # print(probe)
 
-ff = ffmpy.FFmpeg(
+detour = ffmpy.FFmpeg(
   inputs={"https://archive.org/download/Detour_movie/Detour.mp4": '-hide_banner'},
-  outputs={"pipe:1": '-an -filter:v "select=\'gt(scene, 0.2)\', showinfo" -f null'}
+  outputs={"pipe:1": '-an -filter:v "select=\'gt(scene, 0.3)\', showinfo" -f null'}
 )
-ff.cmd
-stdout, stderr = ff.run(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-# print("stdout:", stdout)
-# print("stderr:", stderr)
-# output = filter(lambda x : "[Parsed_showinfo" in x, stderr.decode("utf-8").split("\n"))
-output = stderr.decode("utf-8").split("\n")
+detour.cmd
+stdout, stderr_detour = detour.run(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+doa = ffmpy.FFmpeg(
+  inputs={"https://archive.org/download/doa_1949/doa_1949.mp4": '-hide_banner'},
+  outputs={"pipe:1": '-an -filter:v "select=\'gt(scene, 0.3)\', showinfo" -f null'}
+)
+doa.cmd
+stdout_doa, stderr_doa = doa.run(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+output = stderr_detour.decode("utf-8").split("\n")
 filtered_output = list(filter(lambda x : "Parsed_showinfo_1" in x and "pts_time" in x, output))
 final_output = list(map(lambda y : ((next(filter(lambda z : z.startswith("pts_time"), y.split(" ")), None)).split(":"))[1], filtered_output))
 print(final_output)
 shot_num = len(final_output)
 random_idx = random.randint(0, shot_num)
 
-ff2 = ffmpy.FFmpeg(
-  inputs={"https://archive.org/download/Detour_movie/Detour.mp4": f'-ss {final_output[random_idx]} -to {round(float(final_output[random_idx + random.randint(1, 3)]) - (2 / 29.97), 2)}'},
-  outputs={"test.mp4":None}
+output_doa = stderr_doa.decode("utf-8").split("\n")
+filtered_output_doa = list(filter(lambda x : "Parsed_showinfo_1" in x and "pts_time" in x, output_doa))
+final_output_doa = list(map(lambda y : ((next(filter(lambda z : z.startswith("pts_time"), y.split(" ")), None)).split(":"))[1], filtered_output_doa))
+print(final_output_doa)
+shot_num_doa = len(final_output_doa)
+random_idx_doa = random.randint(0, shot_num_doa)
+
+ff2_detour = ffmpy.FFmpeg(
+  inputs={"https://archive.org/download/Detour_movie/Detour.mp4": f'-ss {final_output[random_idx]} -to {round(float(final_output[random_idx + random.randint(1, 4)]) - (2 / 29.97), 2)}'},
+  outputs={"test_detour.mp4":None}
 )
-ff2.cmd
-ff2.run()
+ff2_detour.cmd
+ff2_detour.run()
+
+ff2_doa = ffmpy.FFmpeg(
+  inputs={"https://archive.org/download/doa_1949/doa_1949.mp4": f'-ss {final_output_doa[random_idx_doa]} -to {round(float(final_output_doa[random_idx_doa + random.randint(1, 3)]) - (2 / 29.97), 2)}'},
+  outputs={"test_doa.mp4":None}
+)
+ff2_doa.cmd
+ff2_doa.run()
+
+ff3_merge = ffmpy.FFmpeg(
+  inputs={"ffmpeg_demuxer_test.txt": "-f concat"},
+  outputs={"test_concat.mp4": "-c copy"}
+)
+
+ff3_merge.cmd
+ff3_merge.run()
