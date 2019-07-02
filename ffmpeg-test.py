@@ -31,7 +31,7 @@ import subprocess
 
 ff = ffmpy.FFmpeg(
   inputs={"https://archive.org/download/Detour_movie/Detour.mp4": '-hide_banner'},
-  outputs={"pipe:1": '-an -filter:v "select=\'gt(scene, 0.4)\', showinfo" -f null'}
+  outputs={"pipe:1": '-an -filter:v "select=\'gt(scene, 0.2)\', showinfo" -f null'}
 )
 ff.cmd
 stdout, stderr = ff.run(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -42,3 +42,12 @@ output = stderr.decode("utf-8").split("\n")
 filtered_output = list(filter(lambda x : "Parsed_showinfo_1" in x and "pts_time" in x, output))
 final_output = list(map(lambda y : ((next(filter(lambda z : z.startswith("pts_time"), y.split(" ")), None)).split(":"))[1], filtered_output))
 print(final_output)
+shot_num = len(final_output)
+random_idx = random.randint(0, shot_num)
+
+ff2 = ffmpy.FFmpeg(
+  inputs={"https://archive.org/download/Detour_movie/Detour.mp4": f'-ss {final_output[random_idx]} -to {round(float(final_output[random_idx + 1]) - (1 / 29.97), 2)}'},
+  outputs={"test.mp4":None}
+)
+ff2.cmd
+ff2.run()
