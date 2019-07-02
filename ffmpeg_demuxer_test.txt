@@ -1,2 +1,3 @@
 file test_detour.mp4
 file test_doa.mp4
+file test_stranger.mp4
